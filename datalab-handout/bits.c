@@ -241,18 +241,19 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  //还是用符号位进行判断
-  //取-x  和 y之和的符号位 是否为0
-  //对x=-2147483648取不了-x
-  // 对x和y的符号关系进行判断 并分别讨论
-  // 异号时直接求出答案  
-  // 同号时取出符号位之外的部分 进行减法
-  //
-  int tmp = ~0;
-  int sig = (1 << 31);
-  tmp = tmp ^ sig;
-  int sx = x >> 31;
-  int sy = y >> 31;
+  // 还是用符号位进行判断
+  // 判断y-x的符号位是什么
+  //  取x的前31位的负 和y的前31位相加 判断是否进位
+  int sx = x >> 31 & 1;
+  int sy = y >> 31 & 1;
+  int tmp = ~0 ^ (1 << 31);
+  int ok = (!sx) & sy;	//x负y正
+  int si = sx ^ (!sy)；
+  int tx = x & tmp;
+  tx = ~tx+1;
+  int ty = y & tmp;
+  ty = (tx + ty) >> 31 & 1;	//同号时  y-x是0~30位做加法，检查第31位的值
+  ok = ok | (si & (ty))  //xy同
 }	
 //4
 /* 
