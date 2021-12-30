@@ -206,10 +206,13 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  int xx = 256;
-  int yy = xx << 2;
-  yy = yy ^ 1;
-  return (yy & (1 << x));
+  //思路：可以用加号，就能实现减法
+  //利用符号位分别进行小于'0'和大于'9'的判断
+  int l = 0x30;
+  int r = 0x3A;
+  l = ~l+1;
+  r = ~r+1;
+  return (!((l + x) >> 31)) & ((r + x) >> 31);	//x >= '0'  x <= '9'
 }
 /* 
  * conditional - same as x ? y : z 
@@ -219,7 +222,16 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  int nx = !x;
+  int xx = !nx;
+  //二选一MUX
+  //xx为真输出y 否则输出z  
+  //弄一个32位的，与xx有关的变量 若xx为0则全0 否则全1
+  //注意到0的按位非是全1，-1的按位非是全0
+  xx = ~xx+1;
+  xx = ~xx;
+  xx = (xx & z) + (~xx & y);
+  return xx;
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -229,8 +241,19 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
-}
+  //还是用符号位进行判断
+  //取-x  和 y之和的符号位 是否为0
+  //对x=-2147483648取不了-x
+  // 对x和y的符号关系进行判断 并分别讨论
+  // 异号时直接求出答案  
+  // 同号时取出符号位之外的部分 进行减法
+  //
+  int tmp = ~0;
+  int sig = (1 << 31);
+  tmp = tmp ^ sig;
+  int sx = x >> 31;
+  int sy = y >> 31;
+}	
 //4
 /* 
  * logicalNeg - implement the ! operator, using all of 
