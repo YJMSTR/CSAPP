@@ -169,8 +169,12 @@ int tmin(void) {
  *   Max ops: 10
  *   Rating: 1
  */
-int isTmax(int x) {
-  return !(~(1 << 31)^x);
+int isTmax(int x) { // 01111111...111 -> 0000..000
+  int tmp = x + 1;	
+  int n = ~0;
+  int flag = !!(x ^ n);
+  tmp = tmp + x;
+  return (!(tmp ^ n)) & flag; 
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -181,8 +185,8 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-	int tmp = 170;
-	tmp = tmp | (tmp << 8) | (tmp << 16) | (tmp << 24); 
+  int tmp = 170;
+  tmp = tmp | (tmp << 8) | (tmp << 16) | (tmp << 24); 
   return !((x&tmp)^tmp);
 }
 /* 
@@ -241,19 +245,14 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  // 还是用符号位进行判断
-  // 判断y-x的符号位是什么
-  //  取x的前31位的负 和y的前31位相加 判断是否进位
-  int sx = x >> 31 & 1;
-  int sy = y >> 31 & 1;
-  int tmp = ~0 ^ (1 << 31);
-  int ok = (!sx) & sy;	//x负y正
-  int si = sx ^ (!sy)；
-  int tx = x & tmp;
-  tx = ~tx+1;
-  int ty = y & tmp;
-  ty = (tx + ty) >> 31 & 1;	//同号时  y-x是0~30位做加法，检查第31位的值
-  ok = ok | (si & (ty))  //xy同
+  //同号可以用y - x的符号判断 不会溢出
+  //如果是两个tmin  ~x+1还是Tmin  Tmin与Tmin之和还是0  符号位还是0  不变
+  //而如果是其它值  ~x+1=-x, y + ~x + 1 = y - x;      
+  int a = (x >> 31) & (!(y >> 31));
+  int b = (!(x >> 31)) & (y >> 31);
+  int c = (y + ~x + 1) >> 31;
+  //printf ("a = %d b = %d c = %d\n", a, b, c);
+  return a | (!b & !c); 
 }	
 //4
 /* 
