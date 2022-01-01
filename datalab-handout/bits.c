@@ -264,7 +264,10 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  //除了0返回1  其它返回1
+  //找0和非0数的区别：-0和0的最高位都是0  它们的或最高位也是0 其它数不是
+  int nx = ~x + 1;
+  return (((nx | x) >> 31) & 1) ^ 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
