@@ -210,8 +210,6 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  //思路：可以用加号，就能实现减�?
-  //利用符号位分别进行小�?'0'和大�?'9'的判�?
   int l = 0x30;
   int r = 0x3A;
   l = ~l+1;
@@ -228,10 +226,6 @@ int isAsciiDigit(int x) {
 int conditional(int x, int y, int z) {
   int nx = !x;
   int xx = !nx;
-  //二选一MUX
-  //xx为真输出y 否则输出z  
-  //弄一�?32位的，与xx有关的变�? 若xx�?0则全0 否则�?1
-  //注意�?0的按位非是全1�?-1的按位非是全0
   xx = ~xx+1;
   xx = ~xx;
   xx = (xx & z) + (~xx & y);
@@ -244,10 +238,7 @@ int conditional(int x, int y, int z) {
  *   Max ops: 24
  *   Rating: 3
  */
-int isLessOrEqual(int x, int y) {
-  //同号可以用y - x的符号判�? 不会溢出
-  //如果是两个tmin  ~x+1还是Tmin  Tmin与Tmin之和还是0  符号位还�?0  不变
-  //而如果是其它�?  ~x+1=-x, y + ~x + 1 = y - x;      
+int isLessOrEqual(int x, int y) {  
   int a = (x >> 31) & (!(y >> 31));
   int b = (!(x >> 31)) & (y >> 31);
   int c = (y + ~x + 1) >> 31;
@@ -264,8 +255,6 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  //除了0返回1  其它返回1
-  //�?0和非0数的区别�?-0�?0的最高位都是0  它们的或最高位也是0 其它数不�?
   int nx = ~x + 1;
   return (((nx | x) >> 31) & 1) ^ 1;
 }
@@ -282,18 +271,11 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  /*
-  x = x >> 1;
-  ans = ans + !!x; (这样一次要4个ops，操作上限90，不行)
-  可以考虑二分位数，找最高位的1
-  负数最少要几位？符号位和最高位的0所在位，即最高位的0的位置+1
-  正数：最高位的1所在的位 加上符号位
-  */
   int sig = x >> 31;
   int f16, f8, f4, f2, f1;
-  x = (sig & ~x) | (~sig & x);  //如果是负数 按位取反好统一处理
+  x = (sig & ~x) | (~sig & x); 
   f16 = !!(x >> 16) << 4;
-  x = x >> f16;	//左边16位是否有1 有的话答案先加个16
+  x = x >> f16;	
   f8 = !!(x >> 8) << 3;
   x = x >> f8;   
   f4 = !!(x >> 4) << 2;
@@ -317,6 +299,11 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
+  //s 31  exp 30~23 frac 22~0
+  //01111111100000000000000000000000
+  //0x7f800000
+  int sig = uf >> 31;
+  int exp = (uf & 0x7f800000) >> 23;
   return 2;
 }
 /* 
