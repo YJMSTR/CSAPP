@@ -302,9 +302,22 @@ unsigned floatScale2(unsigned uf) {
   //s 31  exp 30~23 frac 22~0
   //01111111100000000000000000000000
   //0x7f800000
-  int sig = uf >> 31;
-  int exp = (uf & 0x7f800000) >> 23;
-  return 2;
+  //0x007FFFFF
+  unsigned sig = uf & (1 << 31);
+  unsigned exp = (uf & 0x7f800000) >> 23;
+  unsigned frac = uf & ((1 << 23) - 1);
+  if (exp == 255) return uf; 
+  if (exp == 0) { 
+    if (frac & (1 << 22)) {
+      exp = exp + 1;
+    }
+    frac = (frac << 1) & (((1 << 23) - 1));
+  } else {
+    exp = exp + 1;
+    if (exp == 255) 
+      frac = 0; 
+  }
+  return sig | (exp << 23) | frac;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -319,6 +332,13 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
+  unsigned sig = uf & (1 << 31);
+  unsigned exp = (uf & 0x7f800000) >> 23;
+  unsigned frac = uf & ((1 << 23) - 1);
+  if (exp == 255) {
+    return 0x80000000u;
+  }
+  
   return 2;
 }
 /* 
