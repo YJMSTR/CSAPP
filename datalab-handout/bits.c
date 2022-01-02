@@ -332,15 +332,21 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  unsigned sig = uf & (1 << 31);
-  unsigned exp = (uf & 0x7f800000) >> 23;
-  unsigned frac = uf & ((1 << 23) - 1);
-  if (exp == 255) {
-    return 0x80000000u;
+  int sig = uf & (1 << 31);
+  int exp = (uf & (0x7f800000)) >> 23;//110011111
+  int frac = uf & ((1 << 23)-1);
+  if (exp > 158) return 0x80000000u;
+  if (exp < 127) {
+    return 0;
   }
-  
-  return 2;
-}
+  exp = exp - 127;  //exp < 31
+  if (exp > 23) frac = frac << (exp - 23);
+  //if (frac & (1 << 31)) return 0x80000000u;
+  if (exp < 23) frac = frac >> (23 - exp);
+  frac = frac + (1 << exp);
+  if (sig) return sig | ~frac;
+  else return frac;
+}//00111111010000000000
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
  *   (2.0 raised to the power x) for any 32-bit integer x.
