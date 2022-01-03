@@ -333,18 +333,17 @@ unsigned floatScale2(unsigned uf) {
  */
 int floatFloat2Int(unsigned uf) {
   int sig = uf & (1 << 31);
-  int exp = (uf & (0x7f800000)) >> 23;//110011111
+  int exp = (uf & (0x7f800000)) >> 23;
   int frac = uf & ((1 << 23)-1);
   if (exp > 158) return 0x80000000u;
   if (exp < 127) {
     return 0;
   }
-  exp = exp - 127;  //exp < 31
+  exp = exp - 127;  
   if (exp > 23) frac = frac << (exp - 23);
-  //if (frac & (1 << 31)) return 0x80000000u;
   if (exp < 23) frac = frac >> (23 - exp);
   frac = frac + (1 << exp);
-  if (sig) return sig | ~frac;
+  if (sig) return ~frac+1;
   else return frac;
 }//00111111010000000000
 /* 
@@ -361,5 +360,8 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
+    unsigned sig = 0;
+    unsigned exp = x;
+    unsigned frac = 0;
     return 2;
 }
