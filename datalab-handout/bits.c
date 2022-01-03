@@ -360,8 +360,18 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    unsigned sig = 0;
     unsigned exp = x;
     unsigned frac = 0;
-    return 2;
+    if (x > 127)
+      return ((1u<<8)-1u)<<23u;
+    if (x >= -126) 
+      return (exp+127) << 23;
+    else {
+      exp = 0;
+      x += 126;
+      if (x >= -22) {
+        frac = (1 << 23) >> (-x);
+        return frac;
+      } else return 0;
+    }
 }
