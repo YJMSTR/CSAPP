@@ -356,7 +356,7 @@ Disassembly of section .text:
 0000000000400efc <phase_2>:
   400efc:	55                   	push   %rbp
   400efd:	53                   	push   %rbx
-  400efe:	48 83 ec 28          	sub    $0x28,%rsp
+  400efe:	48 83 ec 28          	sub    $0x28,%rsp 
   400f02:	48 89 e6             	mov    %rsp,%rsi
   400f05:	e8 52 05 00 00       	callq  40145c <read_six_numbers>
   400f0a:	83 3c 24 01          	cmpl   $0x1,(%rsp)
