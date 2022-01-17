@@ -92,5 +92,7 @@ int func4() {
 
 ## phase_5
 
+%fs:28 是在通过段寻址从内存中读入金丝雀（canary）值，在本题中可以暂时无视。
 
+继续向下看得知，输入的字符串长为6，R[eax]被设为0，随后跳转至40108b，R[cx]被设为R[bx]+R[ax]，M[R[rsp]]被设为R[cl]，R[dx]又被设为M[R[rsp]]，即R[cl]，随后R[dx] =  R[dx] & 0xf;
 
