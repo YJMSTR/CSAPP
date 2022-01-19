@@ -94,5 +94,7 @@ int func4() {
 
 %fs:28 是在通过段寻址从内存中读入金丝雀（canary）值，在本题中可以暂时无视。
 
-继续向下看得知，输入的字符串长为6，R[eax]被设为0，随后跳转至40108b，R[cx]被设为R[bx]+R[ax]，M[R[rsp]]被设为R[cl]，R[dx]又被设为M[R[rsp]]，即R[cl]，随后R[dx] =  R[dx] & 0xf;
+继续向下看得知，输入的字符串长为6，底下的跳转到0x40108b部分是一个循环执行了六次，每次操作时会将读入的一个字符存入rdx中，并取其低4位作为edx的值。随后将M[R[%rdx]+0x4024b0]的值的低32位作为%edx的新值。0x4024b0处的字符串是"maduiersnfotvbylSo you think you can stop the bomb with ctrl-c, do you?"。
+
+那么这个程序做的是：读入一个长为6的字符串，将每个字母变为0x4024b0向后移动该字母ascii码的低4位对应的字母，最终要变成目标字符串“flyers”。对应的偏移量分别为“9 15 14 5 6 7”，对着ascii码表构造字符串即可。我构造的是“IONEFG”
 
