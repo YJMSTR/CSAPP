@@ -164,13 +164,13 @@ struct node {
 
 而gdb显示这六个node的x值依次为332， 168， 924， 691， 477， 443，
 
-写成c语言(先逐行翻译成带goto的c语言)大概长这样：
+把内存中那些地址的值画出来可以帮助理解，写成c语言(先逐行翻译成带goto的c语言)大概长这样:
 
 ```c
 esi = 0;
 goto _401197;
 _401176:
-rdx = M[rdx + 8];//rdx+8处存的是当前node的下一个结点的地址
+rdx = M[rdx + 8];//rdx是指向node的指针，+8是跳转到下一个node
 eax++;	//如果是从401197跳转过来的，eax此时必为2
 if (eax != ecx) {
     goto _401176;
@@ -178,7 +178,7 @@ if (eax != ecx) {
 _401183:
 edx = 0x6032d0;
 _401188:
-M[rsp+2*rsi + 32] = rdx;//把当前结点地址存入M[rsp+2*rsi+32]
+M[rsp+2*rsi + 32] = rdx;//把当前结点（第ecx个node）地址存入M[rsp+2*rsi+32]
 rsi += 4;
 if (rsi == 24) {
     goto _4011ab;
@@ -197,6 +197,7 @@ rbx = M[rsp + 32];//当前结点的地址
 rax = rsp + 40;
 rsi = rsp + 80;//一共6个
 rcx = rbx;
+_4011bd:
 rdx = M[rax];//下一个结点的地址
 M[rcx+8] = rdx;
 rax += 8;
@@ -208,7 +209,8 @@ M[rdx+8] = 0;//这里是链表的最后一个结点的，把它指向下一个�
 ebp = 5;
 _4011df:
 rax = M[rbx+8];
-if (M[rbx] >= eax) goto _4011ee;
+eax = M[rax];
+if (M[rbx] >= eax) goto _4011ee;//按照输入的排列排序后，当前结点的x值必须不小于下一个结点
 else explode_bomb();
 _4011ee:
 rbx = M[rbx+8];
@@ -218,7 +220,9 @@ if (ebp) goto _4011df;
 
 ```
 
+按照上述注释分析出，程序按照输入的排列与7取补后得到的排列对6个node进行排序，使得排序后x值依次递减。
 
+因此4 3 2 1 6 5 合法
 
 
 
