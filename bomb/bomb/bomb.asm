@@ -628,7 +628,7 @@ Disassembly of section .text:
   401255:	e8 76 f9 ff ff       	callq  400bd0 <strtol@plt>
   40125a:	48 89 c3             	mov    %rax,%rbx
   40125d:	8d 40 ff             	lea    -0x1(%rax),%eax
-  401260:	3d e8 03 00 00       	cmp    $0x3e8,%eax
+  401260:	3d e8 03 00 00       	cmp    $0x3e8,%eax 
   401265:	76 05                	jbe    40126c <secret_phase+0x2a>
   401267:	e8 ce 01 00 00       	callq  40143a <explode_bomb>
   40126c:	89 de                	mov    %ebx,%esi
