@@ -182,5 +182,7 @@ stack:
 
 ## Part B 
 
+修改seq-full.hcl以使其支持iaddq指令
+
 
 
